@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "tecs": {
+      "command": "luajit",
+      "args": ["src/vendor/share/lua/5.1/tecs_mcp/client.lua"],
+      "env": {
+        "TECS_MCP_HOST": "127.0.0.1",
+        "TECS_MCP_PORT": "19999"
+      }
+    }
+  }
+}
