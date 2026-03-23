@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "tecs": {
+      "type": "http",
+      "url": "http://localhost:19999/mcp"
+    }
+  }
+}

@@ -15,3 +15,5 @@ luac.out
 *.src.rock
 *.zip
 *.tar.gz
+
+.DS_Store

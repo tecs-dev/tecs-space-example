@@ -2,16 +2,16 @@
 package.path = package.path .. ";./vendor/share/lua/5.1/?.lua;./vendor/share/lua/5.1/?/init.lua"
 package.cpath = package.cpath .. ";./vendor/lib/lua/5.1/?.so"
 
-local jit <const> = require("jit")
-jit.on()
+local tecs2d <const> = require("tecs2d")
 
-local tecslove <const> = require("tecs.love")
-
-love.run = tecslove.run({
+love.run = tecs2d.run({
     fps = 60,
     game = require("plugins.game"),
     render = {
-        virtualHeight = 384,
-        lightingMode = "none",
+        virtualHeight = 480,
+        lightingMode = "dynamic",
+        layers = {
+            [15] = {name = "ui", space = "virtual", unlit = true},
+        },
     },
 })
