@@ -452,7 +452,11 @@ local function copy_vendor()
     end
 
     status("Preparing runtime vendor tree...")
-    copy_dir("src/vendor", "build/vendor")
+    if exists("src/vendor") then
+        copy_dir("src/vendor", "build/vendor")
+    else
+        mkdir("build/vendor")
+    end
 
     if exists(path_join(tecs_build, "init.lua")) and exists(path_join(tecs2d_build, "init.lua")) then
         copy_dir(tecs_build, path_join("build/vendor/share/lua/5.1/tecs"))
