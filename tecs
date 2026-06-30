@@ -65,6 +65,13 @@ local function normalize(path)
     return path
 end
 
+-- Path spelling for Lua module search. Under MSYS2 our shell tools need
+-- `/d/...`, but the `tl` shim ultimately runs Windows Lua and needs `D:/...`.
+local function lua_module_path(path)
+    path = tostring(path):gsub("\\", "/")
+    return path
+end
+
 -- Join path segments, collapsing extra separators while preserving an
 -- absolute prefix (leading "/" on unix or a drive letter on Windows).
 local function path_join(...)
@@ -284,10 +291,10 @@ local function lua_path()
         "types/?.d.tl",
         "types/string/?.d.tl",
         "types/table/?.d.tl",
-        path_join(tecs_dir, "src/?.tl"),
-        path_join(tecs_dir, "src/?/init.tl"),
-        path_join(tecs_dir, "build/?.lua"),
-        path_join(tecs_dir, "build/?/init.lua"),
+        lua_module_path(tecs_dir) .. "/src/?.tl",
+        lua_module_path(tecs_dir) .. "/src/?/init.tl",
+        lua_module_path(tecs_dir) .. "/build/?.lua",
+        lua_module_path(tecs_dir) .. "/build/?/init.lua",
         vendor_lua .. "/?.tl",
         vendor_lua .. "/?/init.tl",
         vendor_lua .. "/?.lua",
@@ -353,7 +360,7 @@ end
 
 -- Install Tecs/Tecs2D into src/vendor via luarocks on first use.
 local function ensure_vendor()
-    if exists(path_join(vendor_lua, "tecs2d")) then return end
+    if exists(path_join(vendor_lua, "tecs2d/init.tl")) then return end
     status("Installing Tecs and Tecs2D dependencies...")
     run(tecs_cmd("luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tecs-dev-1.rockspec"))
     run(tecs_cmd("luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tecs2d-dev-1.rockspec"))
