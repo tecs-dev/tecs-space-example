@@ -129,7 +129,7 @@ local function mkdir(path)
     if is_windows then
         run('mkdir ' .. q(path))
     else
-        run('mkdir -p ' .. q(path))
+        run(posix_cmd('mkdir -p ' .. q(path)))
     end
 end
 
@@ -146,7 +146,7 @@ local function remove(path)
     if is_windows then
         run('rmdir /s /q ' .. q(path))
     else
-        run('rm -rf ' .. q(path))
+        run(posix_cmd('rm -rf ' .. q(path)))
     end
 end
 
@@ -163,7 +163,7 @@ local function copy_dir(src, dst, exclude_args)
         run('cmd /C "' .. cmd .. ' & if %ERRORLEVEL% LEQ 7 exit /B 0 else exit /B %ERRORLEVEL%"')
     else
         local excludes = exclude_args and (" " .. exclude_args) or ""
-        run("rsync -aL --delete" .. excludes .. " " .. q(src .. "/") .. " " .. q(dst .. "/"))
+        run(posix_cmd("rsync -aL --delete" .. excludes .. " " .. q(src .. "/") .. " " .. q(dst .. "/")))
     end
 end
 
