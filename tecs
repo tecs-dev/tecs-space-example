@@ -56,7 +56,13 @@ local function normalize(path)
     if is_windows then
         return (path:gsub("/", "\\"))
     end
-    return (path:gsub("\\", "/"))
+    path = path:gsub("\\", "/")
+    if is_msys then
+        path = path:gsub("^(%a):", function(drive)
+            return "/" .. drive:lower()
+        end)
+    end
+    return path
 end
 
 -- Join path segments, collapsing extra separators while preserving an
