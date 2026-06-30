@@ -278,6 +278,10 @@ local function lua_path()
         "types/?.d.tl",
         "types/string/?.d.tl",
         "types/table/?.d.tl",
+        path_join(tecs_dir, "src/?.tl"),
+        path_join(tecs_dir, "src/?/init.tl"),
+        path_join(tecs_dir, "build/?.lua"),
+        path_join(tecs_dir, "build/?/init.lua"),
         vendor_lua .. "/?.tl",
         vendor_lua .. "/?/init.tl",
         vendor_lua .. "/?.lua",
@@ -329,12 +333,27 @@ local function ensure_types()
     end
 end
 
+-- Use the local checkout directly when LuaRocks cannot reliably install into
+-- the starter vendor tree, which can happen under MinGW/MSYS path translation.
+local function sync_local_tecs()
+    local tecs_src = path_join(tecs_dir, "src/tecs")
+    local tecs2d_src = path_join(tecs_dir, "src/tecs2d")
+    if not exists(tecs_src) or not exists(tecs2d_src) then return end
+
+    status("Syncing Tecs from local checkout...")
+    copy_dir(tecs_src, path_join(vendor_lua, "tecs"))
+    copy_dir(tecs2d_src, path_join(vendor_lua, "tecs2d"))
+end
+
 -- Install Tecs/Tecs2D into src/vendor via luarocks on first use.
 local function ensure_vendor()
     if exists(path_join(vendor_lua, "tecs2d")) then return end
     status("Installing Tecs and Tecs2D dependencies...")
     run(tecs_cmd("luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tecs-dev-1.rockspec"))
     run(tecs_cmd("luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tecs2d-dev-1.rockspec"))
+    if not exists(path_join(vendor_lua, "tecs2d/init.tl")) then
+        sync_local_tecs()
+    end
 end
 
 -- Download and unpack the Love2D 12 nightly for this platform into .love12.
