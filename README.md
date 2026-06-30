@@ -9,8 +9,9 @@ a high-performance ECS framework.
 
 Install these tools before using this template:
 
-1. **LuaRocks** - Lua package manager ([installation](https://github.com/luarocks/luarocks/blob/main/docs/download.md))
-2. **Teal** - Typed Lua compiler
+1. **Lua** - Any recent Lua that can run `tecs`
+2. **LuaRocks** - Lua package manager ([installation](https://github.com/luarocks/luarocks/blob/main/docs/download.md))
+3. **Teal** - Typed Lua compiler
 
 ```bash
 luarocks install tl
@@ -21,7 +22,7 @@ luarocks install tl
 ```bash
 git clone https://github.com/tecs-dev/tecs-starter.git my-game
 cd my-game
-make run
+./tecs run
 ```
 
 That's it! The first run automatically downloads Love2D 12, type definitions, and
@@ -31,7 +32,7 @@ installs both the `tecs` and `tecs2d` rocks from your local Tecs checkout. You s
 
 ```
 my-game/
-├── Makefile              # Build orchestration
+├── tecs                  # Cross-platform build orchestration
 ├── tlconfig.lua          # Teal configuration
 ├── src/
 │   ├── main.tl           # Game entry point
@@ -46,15 +47,17 @@ my-game/
 └── src/vendor/           # Installed rocks and dependencies (generated)
 ```
 
-## Make Targets
+## Build Targets
+
+Commands are shown with `./tecs` for Unix-like systems. On Windows, use `lua tecs <target>`.
 
 | Command             | Description                                          |
 |---------------------|------------------------------------------------------|
-| `make run`          | Build and run the game (runs setup automatically)    |
-| `make build`        | Compile without running                              |
-| `make clean`        | Remove build artifacts                               |
-| `make reset`        | Clean everything, including dependencies and Love2D  |
-| `make love12`       | Re-download Love2D 12                                |
+| `./tecs run`       | Build and run the game (runs setup automatically)    |
+| `./tecs build`     | Compile without running                              |
+| `./tecs check`     | Type-check all Teal source files                     |
+| `./tecs clean`     | Remove build artifacts                               |
+| `./tecs love12`    | Re-download Love2D 12                                |
 
 ## Managing Dependencies
 
@@ -77,7 +80,7 @@ The starter demo is a small scrolling shooter:
 - **F1** - Toggle stats overlay
 
 The camera stays fixed while the playfield scrolls. Enemies, asteroids, powerups,
-pause/game-over overlays, and a periodic glitch storm are implemented as TECS plugins and systems.
+pause/game-over overlays, and a periodic glitch storm are implemented as Tecs plugins and systems.
 
 ## Documentation
 
