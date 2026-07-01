@@ -126,6 +126,11 @@ local function run(cmd)
     error("command failed with exit code " .. tostring(code), 0)
 end
 
+local function command_ok(cmd)
+    local a = os.execute(cmd)
+    return a == true or a == 0
+end
+
 local function mkdir(path)
     path = normalize(path)
     if exists(path) then return end
@@ -338,12 +343,43 @@ local function tecs_cmd(cmd)
 end
 
 local function tecs_tl_ref()
+    local env_ref = os.getenv("TL_REF")
+    if env_ref and env_ref ~= "" then return env_ref end
     local makefile = read_file(path_join(tecs_dir, "Makefile")) or ""
     return makefile:match("\nTL_REF%s*%?=%s*([%w]+)") or makefile:match("^TL_REF%s*%?=%s*([%w]+)")
 end
 
+local function ensure_msys_teal_wrapper()
+    if not is_msys then return false end
+    if not command_ok(posix_cmd('[ -f src/vendor/lib/luarocks/rocks-5.1/tl/dev-1/bin/tl ]')) then
+        return false
+    end
+    local bin = path_join("src/vendor/bin")
+    mkdir(bin)
+    write_file(path_join(bin, "tl"), [[#!/usr/bin/env bash
+root="$(cygpath -m "$PWD")"
+script="$root/src/vendor/lib/luarocks/rocks-5.1/tl/dev-1/bin/tl"
+export LUA_PATH="$root/src/vendor/share/lua/5.1/?.lua;$root/src/vendor/share/lua/5.1/?/init.lua;$LUA_PATH"
+export LUA_CPATH="$root/src/vendor/lib/lua/5.1/?.dll;$root/src/vendor/lib/lua/5.1/?.so;$LUA_CPATH"
+exec luajit "$script" "$@"
+]])
+    run(posix_cmd("chmod +x " .. q(path_join(bin, "tl"))))
+    return true
+end
+
 local function ensure_teal_compiler()
-    if exists(path_join("src/vendor/bin/tl")) then return end
+    if exists(path_join("src/vendor/bin/tl")) and not is_msys and command_ok(posix_cmd(q(path_join("src/vendor/bin/tl")) .. " --version >/dev/null 2>&1")) then
+        return
+    end
+    if ensure_msys_teal_wrapper() then return end
+    if is_windows and not is_msys then
+        if command_ok("tl --version >NUL 2>NUL") then return end
+    elseif command_ok(posix_cmd("tl --version >/dev/null 2>&1")) then
+        return
+    end
+    if os.getenv("GITHUB_ACTIONS") == "true" then
+        error("Teal compiler not found. CI should install it into src/vendor before running `tecs check`.", 0)
+    end
     local ref = tecs_tl_ref()
     if not ref then
         error("Could not find TL_REF in " .. path_join(tecs_dir, "Makefile"), 0)
@@ -351,9 +387,9 @@ local function ensure_teal_compiler()
     status("Installing Teal compiler...")
     local tmp = path_join(".tecs-tmp", "tl")
     remove(tmp)
-    run("git clone " .. q("https://github.com/teal-language/tl.git") .. " " .. q(tmp))
-    run("cd " .. q(tmp) .. " && git checkout " .. q(ref))
-    run("cd " .. q(tmp) .. " && luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tl-dev-1.rockspec")
+    run(posix_cmd("git clone --branch main " .. q("https://github.com/teal-language/tl.git") .. " " .. q(tmp)))
+    run(posix_cmd("cd " .. q(tmp) .. " && git checkout --detach " .. q(ref)))
+    run(posix_cmd("cd " .. q(tmp) .. " && luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tl-dev-1.rockspec"))
     remove(path_join(".tecs-tmp"))
 end
 
