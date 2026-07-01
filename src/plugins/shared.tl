@@ -231,6 +231,7 @@ local record GameState
     spawnExplosion: function(x: number, y: number, kind?: string)
     hurtPlayer: function()
     registerPlayerCollision: function()
+    registerEntityCollisions: function()
     spawnPlayer: function()
     restartGame: function()
     scrollStars: function(dt: number)

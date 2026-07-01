@@ -59,6 +59,34 @@ Commands are shown with `./tecs` for Unix-like systems. On Windows, use `lua tec
 | `./tecs clean`     | Remove build artifacts                               |
 | `./tecs love12`    | Re-download Love2D 12                                |
 
+## Hot Reload
+
+The template enables Tecs2D's snapshot-preserving hot reload by default. Run the
+game normally:
+
+```bash
+./tecs run
+```
+
+Then, from another terminal, rebuild whenever you want to reload code/assets:
+
+```bash
+./tecs build
+```
+
+On a successful build, the task runner updates `build/.tecs-reload-stamp`. The
+running game polls that single stamp file and restarts Love2D with freshly
+loaded modules.
+
+The starter restores the saved ECS snapshot after restart. Tecs2D rebuilds renderer-owned sprite buckets and physics bodies from durable components during normal startup/update; the starter also rebinds its local HUD and player references after `FinishSnapshotLoad`.
+
+You can wire any external watcher to the same stamp convention. The important
+rule is to touch the stamp only after a successful rebuild:
+
+```bash
+watchexec -w src -w assets './tecs build'
+```
+
 ## Managing Dependencies
 
 ```bash

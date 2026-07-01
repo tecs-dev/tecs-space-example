@@ -335,6 +335,30 @@ return function(world: tecs.World, gs: shared.GameState)
         end
     end
 
+    local restoredEnemyQuery = world:query({name = "RestoredEnemies", include = {Enemy}})
+    local restoredAsteroidQuery = world:query({name = "RestoredAsteroids", include = {Asteroid}})
+
+    gs.registerEntityCollisions = function()
+        for _, len, entities in restoredEnemyQuery:iter() do
+            for i = 1, len do
+                local id = entities[i]
+                if id then
+                    world:clearObservers(id)
+                    attachEnemyCollision(id)
+                end
+            end
+        end
+        for _, len, entities in restoredAsteroidQuery:iter() do
+            for i = 1, len do
+                local id = entities[i]
+                if id then
+                    world:clearObservers(id)
+                    attachAsteroidCollision(id)
+                end
+            end
+        end
+    end
+
     -- StateEnter("game"): register player collision handler
     world:observe(0, tecs.builtins.StateEnter, function(e: tecs.builtins.StateEnter)
         if e.state == "game" then
@@ -344,6 +368,8 @@ return function(world: tecs.World, gs: shared.GameState)
 
     -- Register player collision handler for pickups, enemy bullets, and enemy contact
     gs.registerPlayerCollision = function()
+        if gs.playerId == 0 or not world:isAlive(gs.playerId) then return end
+        world:clearObservers(gs.playerId)
         world:observe(gs.playerId, physics.BeginContact, function(e: physics.BeginContact)
             local otherId = e.other
 

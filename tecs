@@ -92,6 +92,8 @@ local function path_join(...)
     return normalize(table.concat(out, sep))
 end
 
+local HOT_RELOAD_STAMP = path_join("build", ".tecs-reload-stamp")
+
 -- Directory portion of a path, or "." when there is no parent.
 local function dirname(path)
     local dir = normalize(path):gsub("[/\\][^/\\]+$", "")
@@ -500,6 +502,10 @@ Targets:
 TIP: You can connect to your game using a built-in MCP server.
      Tell your agent to launch the game and connect over MCP.
      Ask the agent anything you want to know or to make changes.
+
+Hot reload: while the game is running, rerun `lua tecs build` from another
+terminal. A successful build updates build/.tecs-reload-stamp; the running game
+will snapshot, restart, and restore state automatically.
 ]])
 end
 
@@ -518,6 +524,7 @@ function tasks.build()
     compile_sources()
     copy_assets()
     copy_vendor()
+    write_file(HOT_RELOAD_STAMP, tostring(os.time()) .. "\n")
 end
 
 function tasks.run()

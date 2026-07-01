@@ -25,6 +25,12 @@ local record HitFlash is tecs.Component
 end
 tecs.newComponent({ name = "HitFlash", container = HitFlash })
 
+local record ScoreNumber is tecs.Component end
+tecs.newComponent({ name = "ScoreNumber", container = ScoreNumber })
+
+local record HealthNumber is tecs.Component end
+tecs.newComponent({ name = "HealthNumber", container = HealthNumber })
+
 local function gamePlugin(world: tecs.World)
     local gs = shared.newGameState()
 
@@ -214,12 +220,13 @@ local function gamePlugin(world: tecs.World)
         render.Text(FONT_PATH, "0000", 1.0, 1.0),
         render.Color(1.0, 1.0, 1.0, 1.0),
         render.Pivot(0, 0),
-        ui.Anchor(0, 1, 8, -18)
+        ui.Anchor(0, 1, 8, -18),
+        ScoreNumber()
     )
     world:spawn(
         tecs.builtins.Transform(0, 0, 1, UI_LAYER),
         render.Text(FONT_PATH, "HEALTH", 0.5, 0.5),
-        render.Color(0.9, 0.5, 0.6, 1.0),
+        render.Color(0.8, 0.5, 0.6, 1.0),
         render.Pivot(1, 0),
         ui.Anchor(1, 1, -8, -30)
     )
@@ -228,7 +235,8 @@ local function gamePlugin(world: tecs.World)
         render.Text(FONT_PATH, tostring(shared.PLAYER_MAX_HP), 1.0, 1.0),
         render.Color(1.0, 0.2, 0.2, 1.0),
         render.Pivot(1, 0),
-        ui.Anchor(1, 1, -8, -18)
+        ui.Anchor(1, 1, -8, -18),
+        HealthNumber()
     )
 
     updateScoreText = function()
@@ -242,6 +250,82 @@ local function gamePlugin(world: tecs.World)
         healthText:setText(tostring(math.max(0, gs.playerHp)))
     end
     gs.updateHealthText = updateHealthText
+
+    local playerQuery = world:query({name = "PlayerEntity", include = {Player}})
+    local scoreNumberQuery = world:query({name = "ScoreNumberText", include = {ScoreNumber, render.Text}})
+    local healthNumberQuery = world:query({name = "HealthNumberText", include = {HealthNumber, render.Text}})
+
+    local function rebindRuntimeEntityIds()
+        gs.playerId = 0
+        for _, _, entities in playerQuery:iter() do
+            gs.playerId = entities[1]
+            break
+        end
+        for _, _, entities in scoreNumberQuery:iter() do
+            scoreNumberId = entities[1]
+            break
+        end
+        for _, _, entities in healthNumberQuery:iter() do
+            healthNumberId = entities[1]
+            break
+        end
+        gs.playerAlive = gs.playerId ~= 0 and world:isAlive(gs.playerId)
+        if scoreNumberId ~= 0 and world:isAlive(scoreNumberId) then
+            updateScoreText()
+        end
+        if healthNumberId ~= 0 and world:isAlive(healthNumberId) then
+            updateHealthText()
+        end
+    end
+
+    world:observe(0, tecs.builtins.OnSnapshotSave, function(ev: tecs.builtins.OnSnapshotSave)
+        ev:addData("tecs-starter.gameState", {
+            fireCooldown = gs.fireCooldown,
+            bulletCount = gs.bulletCount,
+            score = gs.score,
+            playerHp = gs.playerHp,
+            playerAlive = gs.playerAlive,
+            distSinceLastEnemy = gs.distSinceLastEnemy,
+            formationCooldown = gs.formationCooldown,
+            glitchElapsed = gs.glitchElapsed,
+            swarmSpawnTimer = gs.swarmSpawnTimer,
+            currentForwardSpeed = gs.currentForwardSpeed,
+            currentCameraOffsetY = gs.currentCameraOffsetY,
+            lastPlayerX = gs.lastPlayerX,
+            lastPlayerY = gs.lastPlayerY,
+            currentDir = gs.currentDir,
+        })
+    end)
+
+    world:observe(0, tecs.builtins.StartSnapshotLoad, function(ev: tecs.builtins.StartSnapshotLoad)
+        ev:onData("tecs-starter.gameState", function(value: any)
+            local data = value as {string: any}
+            gs.fireCooldown = (data.fireCooldown as number) or gs.fireCooldown
+            gs.bulletCount = (data.bulletCount as number) or gs.bulletCount
+            gs.score = (data.score as number) or gs.score
+            gs.playerHp = (data.playerHp as number) or gs.playerHp
+            if data.playerAlive ~= nil then gs.playerAlive = data.playerAlive as boolean end
+            gs.distSinceLastEnemy = (data.distSinceLastEnemy as number) or gs.distSinceLastEnemy
+            gs.formationCooldown = (data.formationCooldown as number) or gs.formationCooldown
+            gs.glitchElapsed = (data.glitchElapsed as number) or gs.glitchElapsed
+            gs.swarmSpawnTimer = (data.swarmSpawnTimer as number) or gs.swarmSpawnTimer
+            gs.currentForwardSpeed = (data.currentForwardSpeed as number) or gs.currentForwardSpeed
+            gs.currentCameraOffsetY = (data.currentCameraOffsetY as number) or gs.currentCameraOffsetY
+            gs.lastPlayerX = (data.lastPlayerX as number) or gs.lastPlayerX
+            gs.lastPlayerY = (data.lastPlayerY as number) or gs.lastPlayerY
+            gs.currentDir = (data.currentDir as string) or gs.currentDir
+        end)
+    end)
+
+    world:observe(0, tecs.builtins.FinishSnapshotLoad, function()
+        rebindRuntimeEntityIds()
+        if gs.registerPlayerCollision then
+            gs.registerPlayerCollision()
+        end
+        if gs.registerEntityCollisions then
+            gs.registerEntityCollisions()
+        end
+    end)
 
     -- Spawn stars
     local starQuery = world:query({name = "Stars", include = {Star, tecs.builtins.Transform}})
@@ -354,6 +438,26 @@ local function gamePlugin(world: tecs.World)
     local colliderQuery = world:query({name = "Colliders", include = {physics.Collider}})
     local frozenVel: {integer: {number}} = {}
 
+    world:observe(0, tecs.builtins.OnSnapshotSave, function(ev: tecs.builtins.OnSnapshotSave)
+        ev:addData("tecs-starter.frozenVel", frozenVel)
+    end)
+
+    world:observe(0, tecs.builtins.StartSnapshotLoad, function(ev: tecs.builtins.StartSnapshotLoad)
+        ev:onData("tecs-starter.frozenVel", function(value: any)
+            frozenVel = {}
+            local saved = value as {any: {number}}
+            for rawId, vel in pairs(saved) do
+                local id = rawId as integer
+                if type(rawId) == "string" then
+                    id = tonumber(rawId as string) as integer
+                end
+                if id and vel then
+                    frozenVel[id] = vel
+                end
+            end
+        end)
+    end)
+
     world:observe(0, tecs.builtins.StateBlur, function(e: tecs.builtins.StateBlur)
         if e.state ~= "game" then return end
         for archetype, length, entities in colliderQuery:iter() do
@@ -362,8 +466,10 @@ local function gamePlugin(world: tecs.World)
                 local body = colliders[i].body
                 if body then
                     local vx, vy = body:getLinearVelocity()
-                    frozenVel[entities[i]] = {vx, vy}
+                    local av = body:getAngularVelocity()
+                    frozenVel[entities[i]] = {vx, vy, av}
                     body:setLinearVelocity(0, 0)
+                    body:setAngularVelocity(0)
                 end
             end
         end
@@ -384,6 +490,7 @@ local function gamePlugin(world: tecs.World)
                 local body = colliders[i].body
                 if body and saved then
                     body:setLinearVelocity(saved[1], saved[2])
+                    body:setAngularVelocity(saved[3] or 0)
                 end
             end
         end
