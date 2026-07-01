@@ -340,11 +340,19 @@ end
 -- Copy Teal type definitions from the Tecs checkout on first use.
 local function ensure_types()
     if exists("types/love2d.d.tl") then return end
+    local source = path_join(tecs_dir, "types")
+    if not exists(source) then
+        error(
+            "Type definitions not found. Expected " .. source .. "\n" ..
+            "Set TECS_DIR to a current Tecs checkout, run `git pull` there, or restore this starter's types/ directory.",
+            0
+        )
+    end
     status("Copying type definitions...")
     if is_windows then
-        copy_dir(path_join(tecs_dir, "types"), "types", "/XD luassert /XF busted.d.tl")
+        copy_dir(source, "types", "/XD luassert /XF busted.d.tl")
     else
-        copy_dir(path_join(tecs_dir, "types"), "types", '--exclude="busted.d.tl" --exclude="luassert"')
+        copy_dir(source, "types", '--exclude="busted.d.tl" --exclude="luassert"')
     end
 end
 
