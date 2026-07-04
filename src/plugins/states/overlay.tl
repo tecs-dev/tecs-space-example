@@ -5,18 +5,19 @@ local ui <const> = require("tecs2d.ui")
 local tween <const> = require("tecs2d.tween")
 local shared <const> = require("plugins.shared")
 
+local TITLE_BOUNCE <const> = tween.registerPreset("starter.overlay.titleBounce", tween.timeline()
+    :to(0.7, tween.elasticOut, tween.scaleXY, 1.0, 1.0)
+    :once())
+
+local HINT_BOUNCE <const> = tween.registerPreset("starter.overlay.hintBounce", tween.timeline()
+    :to(0.5, tween.elasticOut, tween.scaleXY, 1.0, 1.0)
+    :once())
+
 local record overlay
     register: function(world: tecs.World, state: string, title: string, r: number, g: number, b: number)
 end
 
 function overlay.register(world: tecs.World, state: string, title: string, r: number, g: number, b: number)
-    local bounceSchedule = tween.timeline()
-        :to(0.7, tween.elasticOut, tween.scaleXY, 1.0, 1.0)
-        :once()
-    local hintBounceSchedule = tween.timeline()
-        :to(0.5, tween.elasticOut, tween.scaleXY, 1.0, 1.0)
-        :once()
-
     world:observe(0, tecs.builtins.StateEnter, function(e: tecs.builtins.StateEnter)
         if e.state ~= state then return end
 
@@ -45,8 +46,8 @@ function overlay.register(world: tecs.World, state: string, title: string, r: nu
             hintTransform.scaleY = 0
         end
 
-        bounceSchedule:apply(world, textId)
-        hintBounceSchedule:apply(world, hintId, 1.0, 0.15)
+        TITLE_BOUNCE:apply(world, textId)
+        HINT_BOUNCE:apply(world, hintId, 1.0, 0.15)
     end)
 end
 

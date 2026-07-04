@@ -6,6 +6,7 @@ local tecs2d <const> = require("tecs2d")
 
 love.run = tecs2d.run({
     fps = 60,
+    quitOnEscape = true,
     hotReload = {
         enabled = true,
         snapshotPath = ".tecs-hot-reload.snapshot",

@@ -1,7 +1,5 @@
 local tecs <const> = require("tecs")
-local tecs2d <const> = require("tecs2d")
 local render <const> = require("tecs2d.gfx")
-local input <const> = require("tecs2d.input")
 local stats <const> = require("tecs2d.stats")
 local mcp <const> = require("tecs2d.mcp")
 local audio <const> = require("tecs2d.audio")
@@ -78,6 +76,7 @@ local function gamePlugin(world: tecs.World)
         -- Player starts lower-center; the camera is fixed (no CameraTarget), so
         -- the player roams the screen rather than the world scrolling under it.
         gs.playerId = world:spawn(
+            tecs.builtins.Key("player"),
             tecs.builtins.Transform(0, shared.PLAYER_SPAWN_Y, 1),
             playerSprite,
             Player({speed = 374}),
@@ -216,6 +215,7 @@ local function gamePlugin(world: tecs.World)
         ui.Anchor(0, 1, 8, -30)
     )
     local scoreNumberId = world:spawn(
+        tecs.builtins.Key("hud.score"),
         tecs.builtins.Transform(0, 0, 1, UI_LAYER),
         render.Text(FONT_PATH, "0000", 1.0, 1.0),
         render.Color(1.0, 1.0, 1.0, 1.0),
@@ -231,6 +231,7 @@ local function gamePlugin(world: tecs.World)
         ui.Anchor(1, 1, -8, -30)
     )
     local healthNumberId = world:spawn(
+        tecs.builtins.Key("hud.health"),
         tecs.builtins.Transform(0, 0, 1, UI_LAYER),
         render.Text(FONT_PATH, tostring(shared.PLAYER_MAX_HP), 1.0, 1.0),
         render.Color(1.0, 0.2, 0.2, 1.0),
@@ -251,31 +252,13 @@ local function gamePlugin(world: tecs.World)
     end
     gs.updateHealthText = updateHealthText
 
-    local playerQuery = world:query({name = "PlayerEntity", include = {Player}})
-    local scoreNumberQuery = world:query({name = "ScoreNumberText", include = {ScoreNumber, render.Text}})
-    local healthNumberQuery = world:query({name = "HealthNumberText", include = {HealthNumber, render.Text}})
-
     local function rebindRuntimeEntityIds()
-        gs.playerId = 0
-        for _, _, entities in playerQuery:iter() do
-            gs.playerId = entities[1]
-            break
-        end
-        for _, _, entities in scoreNumberQuery:iter() do
-            scoreNumberId = entities[1]
-            break
-        end
-        for _, _, entities in healthNumberQuery:iter() do
-            healthNumberId = entities[1]
-            break
-        end
+        gs.playerId = world:byKey("player") or 0
+        scoreNumberId = world:requireKey("hud.score")
+        healthNumberId = world:requireKey("hud.health")
         gs.playerAlive = gs.playerId ~= 0 and world:isAlive(gs.playerId)
-        if scoreNumberId ~= 0 and world:isAlive(scoreNumberId) then
-            updateScoreText()
-        end
-        if healthNumberId ~= 0 and world:isAlive(healthNumberId) then
-            updateHealthText()
-        end
+        updateScoreText()
+        updateHealthText()
     end
 
     world:observe(0, tecs.builtins.OnSnapshotSave, function(ev: tecs.builtins.OnSnapshotSave)
@@ -418,16 +401,6 @@ local function gamePlugin(world: tecs.World)
         end
     })
 
-    -- Escape to quit (always runs)
-    world:addSystem({
-        name = "QuitHandler",
-        phase = tecs.phases.Update,
-        run = function()
-            if input.isKeyPressed("escape") then
-                tecs2d.quit(0)
-            end
-        end
-    })
 
     -- Freeze physics motion while the game is not the focused state (paused or
     -- dead). Kinematic bodies keep their velocity across world steps, so the
