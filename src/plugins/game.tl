@@ -302,12 +302,6 @@ local function gamePlugin(world: tecs.World)
 
     world:observe(0, tecs.builtins.FinishSnapshotLoad, function()
         rebindRuntimeEntityIds()
-        if gs.registerPlayerCollision then
-            gs.registerPlayerCollision()
-        end
-        if gs.registerEntityCollisions then
-            gs.registerEntityCollisions()
-        end
     end)
 
     -- Spawn stars
@@ -352,7 +346,6 @@ local function gamePlugin(world: tecs.World)
         gs.currentDir = "idle"
         if needsRespawn then
             spawnPlayer()
-            gs.registerPlayerCollision()
         end
 
         for archetype, length in starQuery:iter() do

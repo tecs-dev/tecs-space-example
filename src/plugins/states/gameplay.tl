@@ -161,7 +161,7 @@ return function(world: tecs.World, gs: shared.GameState)
         end
         local spr = render.Sprite.fromSheet(sheet, "")
         spr:pauseAtStart()
-        local asteroidId = world:spawn(
+        world:spawn(
             tecs.builtins.Transform(x, y, 0.95),
             spr,
             Asteroid({hp = hp, tier = tier, spin = shared.randomRange(-1.5, 1.5)}),
@@ -181,12 +181,12 @@ return function(world: tecs.World, gs: shared.GameState)
                 vy = vy,
             })
         )
-        attachAsteroidCollision(asteroidId)
     end
 
     -- Player bullets chip an asteroid's HP; at zero it scores, explodes, and (if
     -- big or medium) splits into two smaller chunks flung sideways.
     attachAsteroidCollision = function(asteroidId: integer)
+        world:stopObserving(asteroidId, physics.BeginContact, "asteroid-contact")
         world:observe(asteroidId, physics.BeginContact, function(e: physics.BeginContact)
             local ast = world:getMut(asteroidId, Asteroid)
             if not ast then return end
@@ -219,11 +219,12 @@ return function(world: tecs.World, gs: shared.GameState)
                     gs.flashHit(asteroidId)
                 end
             end
-        end)
+        end, "asteroid-contact")
     end
 
     -- Per-enemy hit handler: player bullets damage it; death scores.
     local function attachEnemyCollision(enemyId: integer)
+        world:stopObserving(enemyId, physics.BeginContact, "enemy-contact")
         world:observe(enemyId, physics.BeginContact, function(e: physics.BeginContact)
             local enemy = world:getMut(enemyId, Enemy)
             if not enemy then return end
@@ -248,7 +249,7 @@ return function(world: tecs.World, gs: shared.GameState)
                     gs.flashHit(enemyId)
                 end
             end
-        end)
+        end, "enemy-contact")
     end
 
     -- Spawn an enemy ship at the top of the screen with a random flight path.
@@ -260,7 +261,7 @@ return function(world: tecs.World, gs: shared.GameState)
         local strafeSpeed = shared.ENEMY_STRAFE_SPEED + math.random() * 60
 
         local enemySprite = render.Sprite.fromSheet(shared.enemySheet, "")
-        local enemyId = world:spawn(
+        world:spawn(
             tecs.builtins.Transform(x, y, 0.95),
             enemySprite,
             Enemy({
@@ -285,7 +286,6 @@ return function(world: tecs.World, gs: shared.GameState)
             }),
             physics.RigidBody.new({bodyType = "dynamic", fixedRotation = true})
         )
-        attachEnemyCollision(enemyId)
     end
 
     -- Spawn a line of swooping ships from one side. dir = +1 enters from the
@@ -302,7 +302,7 @@ return function(world: tecs.World, gs: shared.GameState)
             local x = dir * (shared.SWOOP_HSPEED * speedMult * t - edge)
             local y = shared.SWOOP_TOP + shared.SWOOP_DIP * math.sin(w * t)
             local enemySprite = render.Sprite.fromSheet(shared.enemySheet, "")
-            local enemyId = world:spawn(
+            world:spawn(
                 tecs.builtins.Transform(x, y, 0.95),
                 enemySprite,
                 -- Purple tint marks these as the low-HP (2) swoopers, visually
@@ -331,46 +331,13 @@ return function(world: tecs.World, gs: shared.GameState)
                 }),
                 physics.RigidBody.new({bodyType = "dynamic", fixedRotation = true})
             )
-            attachEnemyCollision(enemyId)
         end
     end
-
-    local restoredEnemyQuery = world:query({name = "RestoredEnemies", include = {Enemy}})
-    local restoredAsteroidQuery = world:query({name = "RestoredAsteroids", include = {Asteroid}})
-
-    gs.registerEntityCollisions = function()
-        for _, len, entities in restoredEnemyQuery:iter() do
-            for i = 1, len do
-                local id = entities[i]
-                if id then
-                    world:clearObservers(id)
-                    attachEnemyCollision(id)
-                end
-            end
-        end
-        for _, len, entities in restoredAsteroidQuery:iter() do
-            for i = 1, len do
-                local id = entities[i]
-                if id then
-                    world:clearObservers(id)
-                    attachAsteroidCollision(id)
-                end
-            end
-        end
-    end
-
-    -- StateEnter("game"): register player collision handler
-    world:observe(0, tecs.builtins.StateEnter, function(e: tecs.builtins.StateEnter)
-        if e.state == "game" then
-            gs.registerPlayerCollision()
-        end
-    end)
 
     -- Register player collision handler for pickups, enemy bullets, and enemy contact
-    gs.registerPlayerCollision = function()
-        if gs.playerId == 0 or not world:isAlive(gs.playerId) then return end
-        world:clearObservers(gs.playerId)
-        world:observe(gs.playerId, physics.BeginContact, function(e: physics.BeginContact)
+    local function attachPlayerCollision(playerId: integer)
+        world:stopObserving(playerId, physics.BeginContact, "player-contact")
+        world:observe(playerId, physics.BeginContact, function(e: physics.BeginContact)
             local otherId = e.other
 
             local powerup = world:get(otherId, Powerup)
@@ -423,8 +390,41 @@ return function(world: tecs.World, gs: shared.GameState)
                 gs.hurtPlayer()
                 return
             end
-        end)
+        end, "player-contact")
     end
+
+    world:query({
+        name = "PlayerContactInstall",
+        include = {Player, physics.Collider},
+        onEntitiesAdded = function(archetype: tecs.Archetype, firstRow: integer, lastRow: integer)
+            local entities = archetype.entities
+            for row = firstRow, lastRow do
+                attachPlayerCollision(entities[row])
+            end
+        end,
+    })
+
+    world:query({
+        name = "EnemyContactInstall",
+        include = {Enemy, physics.Collider},
+        onEntitiesAdded = function(archetype: tecs.Archetype, firstRow: integer, lastRow: integer)
+            local entities = archetype.entities
+            for row = firstRow, lastRow do
+                attachEnemyCollision(entities[row])
+            end
+        end,
+    })
+
+    world:query({
+        name = "AsteroidContactInstall",
+        include = {Asteroid, physics.Collider},
+        onEntitiesAdded = function(archetype: tecs.Archetype, firstRow: integer, lastRow: integer)
+            local entities = archetype.entities
+            for row = firstRow, lastRow do
+                attachAsteroidCollision(entities[row])
+            end
+        end,
+    })
 
     -- Main gameplay system
     world:addSystem({
