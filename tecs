@@ -555,7 +555,11 @@ local function copy_vendor()
         mkdir("build/vendor")
     end
 
-    if exists(path_join(tecs_build, "init.lua")) and exists(path_join(tecs2d_build, "init.lua")) then
+    local has_tecs_source = exists(path_join(vendor_lua, "tecs/init.tl"))
+        and exists(path_join(vendor_lua, "tecs2d/init.tl"))
+    if not has_tecs_source
+        and exists(path_join(tecs_build, "init.lua"))
+        and exists(path_join(tecs2d_build, "init.lua")) then
         -- Local rock builds can contain package self-links that point outside the
         -- build tree. rsync -L follows them, so skip those generated links.
         copy_dir(tecs_build, path_join("build/vendor/share/lua/5.1/tecs"), '--exclude="/tecs"')
@@ -670,15 +674,14 @@ function tasks.dev()
 end
 
 tasks["sync-tecs"] = function()
-    status("Reinstalling Tecs and Tecs2D from " .. tecs_dir .. "...")
-    if not exists(path_join(tecs_dir, "tecs-dev-1.rockspec")) then
-        error("rockspec not found at " .. path_join(tecs_dir, "tecs-dev-1.rockspec"), 0)
+    status("Syncing Tecs and Tecs2D source from " .. tecs_dir .. "...")
+    if not exists(path_join(tecs_dir, "src/tecs/init.tl"))
+        or not exists(path_join(tecs_dir, "src/tecs2d/init.tl")) then
+        error("Tecs source not found under " .. path_join(tecs_dir, "src"), 0)
     end
-    remove(path_join(vendor_lua, "tecs"))
-    remove(path_join(vendor_lua, "tecs2d"))
+    ensure_teal_compiler()
     ensure_types()
-    run(tecs_cmd("luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tecs-dev-1.rockspec"))
-    run(tecs_cmd("luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tecs2d-dev-1.rockspec"))
+    sync_local_tecs()
     status("Sync complete.")
 end
 

@@ -1,6 +1,6 @@
 local tecs <const> = require("tecs")
 local render <const> = require("tecs2d.gfx")
-local stats <const> = require("tecs2d.stats")
+local debugPlugin <const> = require("tecs2d.debug")
 local mcp <const> = require("tecs2d.mcp")
 local audio <const> = require("tecs2d.audio")
 local assets <const> = require("tecs2d.assets")
@@ -493,6 +493,6 @@ return function(world: tecs.World)
         smoothing = "interpolate",
     }))
     world:addPlugin(mcp.new())
+    world:addPlugin(debugPlugin.new())
     world:addPlugin(gamePlugin)
-    world:addPlugin(stats.newStatsPlugin())
 end

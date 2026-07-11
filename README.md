@@ -105,7 +105,8 @@ The starter demo is a small scrolling shooter:
 - **Space** - Fire
 - **Enter** - Start, pause, resume, or restart depending on state
 - **ESC** - Quit
-- **F1** - Toggle stats overlay
+- **Ctrl+.** - Toggle stats overlay
+- **Ctrl+/** - Toggle the runtime debugger
 
 The camera stays fixed while the playfield scrolls. Enemies, asteroids, powerups,
 pause/game-over overlays, and a periodic glitch storm are implemented as Tecs plugins and systems.
