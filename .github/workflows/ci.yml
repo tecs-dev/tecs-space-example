@@ -66,14 +66,13 @@ jobs:
             "exec \"$TECS_LUA54\" \"$real_luarocks\" \"\$@\"" \
             > "$RUNNER_TEMP/lua54-bin/luarocks"
           chmod +x "$RUNNER_TEMP/lua54-bin/luarocks"
+          echo "TECS_LUAROCKS=$real_luarocks" >> "$GITHUB_ENV"
           echo "$RUNNER_TEMP/lua54-bin" >> "$GITHUB_PATH"
 
       - name: Install tecs-cli
         working-directory: tecs-cli
         run: |
-          lr() { "$TECS_LUA54" "$(command -v luarocks)" --lua-version=5.1 "$@"; }
-          lr install --local ansicolors
-          lr install --local argparse
+          lr() { "$TECS_LUA54" "$TECS_LUAROCKS" --lua-version=5.1 "$@"; }
           lr install --local luafilesystem
           lr make --local --deps-mode=none tecs-cli-0.1.0-1.rockspec
 
@@ -81,7 +80,7 @@ jobs:
         working-directory: tecs-starter
         run: |
           vendor_tree="$PWD/src/vendor"
-          "$TECS_LUA54" "$(command -v luarocks)" --lua-version=5.1 --dev \
+          "$TECS_LUA54" "$TECS_LUAROCKS" --lua-version=5.1 --dev \
             install --tree="$vendor_tree" tl
 
       - name: Type-check
@@ -155,11 +154,14 @@ jobs:
             --with-lua-include=/mingw64/include/luajit-2.1
           make
           make install
+          mkdir -p /mingw64/share/lua/5.4
+          cp -R /mingw64/share/lua/5.1/luarocks /mingw64/share/lua/5.4/
 
       - name: Configure LuaRocks
         run: |
           mkdir -p "$HOME/bin"
           real_luarocks="$(command -v luarocks)"
+          echo "TECS_LUAROCKS=$real_luarocks" >> "$GITHUB_ENV"
           printf '%s\n' \
             '#!/usr/bin/env bash' \
             'exec "$TECS_LUA54" '"\"$real_luarocks\""' "$@"' \
@@ -183,9 +185,7 @@ jobs:
         working-directory: tecs-cli
         run: |
           export PATH="$HOME/bin:$HOME/.luarocks/bin:$PATH"
-          lr() { "$TECS_LUA54" "$(command -v luarocks)" --lua-version=5.1 "$@"; }
-          lr install --local ansicolors
-          lr install --local argparse
+          lr() { "$TECS_LUA54" "$TECS_LUAROCKS" --lua-version=5.1 "$@"; }
           lr install --local luafilesystem
           lr make --local --deps-mode=none tecs-cli-0.1.0-1.rockspec
 
@@ -195,7 +195,7 @@ jobs:
           # Lua 5.4 parses the registry; LuaRocks still targets LuaJIT 5.1.
           export PATH="$HOME/bin:$HOME/.luarocks/bin:$PATH"
           vendor_tree="$(pwd -W)/src/vendor"
-          "$TECS_LUA54" "$(command -v luarocks)" --lua-version=5.1 --dev \
+          "$TECS_LUA54" "$TECS_LUAROCKS" --lua-version=5.1 --dev \
             install --tree="$vendor_tree" tl
           cd "$GITHUB_WORKSPACE/tecs-starter"
 
