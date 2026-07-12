@@ -1,19 +1,5 @@
 # Tecs build artifacts
 build/
 src/vendor/
-.love12/
-
-# LuaRocks
-lua_modules/
-.luarocks/
-*.rock
-
-# Compiled Lua sources
-luac.out
-
-# luarocks build files
-*.src.rock
-*.zip
-*.tar.gz
 
 .DS_Store

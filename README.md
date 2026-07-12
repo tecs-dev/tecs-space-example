@@ -1,17 +1,37 @@
 # tecs-starter
 
-A project template for building Love2D games with [Tecs](https://github.com/tecs-dev/tecs),
-a high-performance ECS framework.
+A larger reference game for [Tecs](https://github.com/tecs-dev/tecs), a
+high-performance ECS framework for building Love2D games in Teal.
 
 ![Space shooter demo](docs/screenshot.png)
 
-## Prerequisites
+## Install Tecs CLI
 
-Install [`tecs-cli`](https://github.com/tecs-dev/tecs-cli). It downloads a
-tested LÖVE 12 runtime on first use; LuaJIT, LuaRocks, and a compiler toolchain
-are not required.
+The Tecs CLI is the only required installation. It includes Teal, Tecs/Tecs2D,
+type declarations, and build tooling, and downloads a tested LÖVE 12 runtime
+on first use. Lua, LuaRocks, and a compiler toolchain are not required.
 
-## Quick Start
+### macOS
+
+```bash
+curl -fsSL https://github.com/tecs-dev/tecs-cli/releases/latest/download/install.sh | sh
+```
+
+### Windows
+
+```powershell
+irm https://github.com/tecs-dev/tecs-cli/releases/latest/download/install.ps1 | iex
+```
+
+Open a new terminal after installation.
+
+### Linux
+
+```bash
+curl -fsSL https://github.com/tecs-dev/tecs-cli/releases/latest/download/install.sh | sh
+```
+
+## Run This Reference Game
 
 ```bash
 git clone https://github.com/tecs-dev/tecs-starter.git my-game
@@ -19,9 +39,10 @@ cd my-game
 tecs run
 ```
 
-That's it! The first command downloads LÖVE 12 into the user cache. The
-headless CLI payload already contains Teal, Tecs/Tecs2D, type declarations, and
-the starter toolchain. You should see a scrolling shooter demo.
+`tecs run` prepares the embedded dependencies, downloads LÖVE 12 into the user
+cache when needed, builds the game, and launches the scrolling shooter demo.
+
+For a small new project instead of this larger example, run `tecs new my-game`.
 
 ## Project Structure
 
@@ -48,11 +69,11 @@ my-game/
 | `tecs build`       | Compile without running                              |
 | `tecs check`       | Type-check all Teal source files                     |
 | `tecs clean`       | Remove build artifacts                               |
-| `tecs love12`      | Re-download Love2D 12                                |
+| `tecs info`        | Show CLI/runtime versions and project status         |
 
 ## Hot Reload
 
-The template enables Tecs2D's snapshot-preserving hot reload by default. Run the
+The reference game enables Tecs2D's snapshot-preserving hot reload by default. Run the
 game normally:
 
 ```bash
@@ -69,7 +90,10 @@ On a successful build, the task runner updates `build/.tecs-reload-stamp`. The
 running game polls that single stamp file and restarts Love2D with freshly
 loaded modules.
 
-The starter restores the saved ECS snapshot after restart. Tecs2D rebuilds renderer-owned sprite buckets and physics bodies from durable components during normal startup/update; the starter also rebinds its local HUD and player references after `FinishSnapshotLoad`.
+The demo restores the saved ECS snapshot after restart. Tecs2D rebuilds
+renderer-owned sprite buckets and physics bodies from durable components during
+normal startup/update; the demo also rebinds its local HUD and player references
+after `FinishSnapshotLoad`.
 
 You can wire any external watcher to the same stamp convention. The important
 rule is to touch the stamp only after a successful rebuild:
@@ -78,15 +102,9 @@ rule is to touch the stamp only after a successful rebuild:
 watchexec -w src -w assets 'tecs build'
 ```
 
-## Managing Dependencies
-
-The generated game uses LÖVE's LuaJIT runtime and its bundled modules. Place
-additional pure-Lua modules under `src/vendor/share/lua/5.1`; `tecs build`
-copies runtime modules into the self-contained build output.
-
 ## Demo Controls
 
-The starter demo is a small scrolling shooter:
+The reference demo is a small scrolling shooter:
 
 - **Arrow keys / WASD** - Move the player
 - **Space** - Fire
@@ -106,7 +124,7 @@ pause/game-over overlays, and a periodic glitch storm are implemented as Tecs pl
 
 ## License
 
-The template's **code** is released under [MIT No Attribution](LICENSE) (MIT-0): use it as
+The project's **code** is released under [MIT No Attribution](LICENSE) (MIT-0): use it as
 the starting point for your own game with no attribution required. Make it yours.
 
 ### Credits
@@ -118,7 +136,7 @@ Bundled demo assets are **not** all covered by MIT-0. Their licenses:
 | `assets/images/` ships, lasers, power-ups, asteroids (`player`, `enemy`, `*Bullet`, `powerup*`, `asteroid*`) | [Space Shooter (Remastered)](https://kenney.nl/assets/space-shooter-redux) by Kenney | [CC0 1.0](assets/images/kenney-license.txt) |
 | `assets/images/explosion.*` | [Explosion Spriteanim Sheet Minipack](https://reactorcore.itch.io/explosion-spriteanim-sheet-minipack) by [Reactorcore](http://www.reactorcoregames.com) | CC0 / CC-BY 4.0 — see [credits](assets/images/explosion-minipack-credits.txt) |
 | `assets/fonts/press-start-2p.*` | [Press Start 2P](https://fonts.google.com/specimen/Press+Start+2P) by CodeMan38 | [SIL OFL 1.1](assets/fonts/OFL.txt) |
-| `assets/sounds/*.wav` (laser, explosion, hit, pickup) | Generated (sfxr-style), original to this template | MIT-0 |
+| `assets/sounds/*.wav` (laser, explosion, hit, pickup) | Generated (sfxr-style), original to this project | MIT-0 |
 
 > [!IMPORTANT]
 > The explosion sheet is by **Reactorcore** — keep the credit and ship
@@ -126,4 +144,4 @@ Bundled demo assets are **not** all covered by MIT-0. Their licenses:
 > states CC0 in the comments; either way crediting Reactorcore satisfies the terms.)
 >
 > The Kenney art is **CC0** (no attribution required). The Press Start 2P font is **SIL OFL**,
-> not MIT-0: keep `assets/fonts/OFL.txt` alongside it. Sounds are original to this template (MIT-0).
+> not MIT-0: keep `assets/fonts/OFL.txt` alongside it. Sounds are original to this project (MIT-0).
