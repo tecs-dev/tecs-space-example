@@ -45,6 +45,14 @@ jobs:
           test -f build/main.lua
           test -f build/tecs2d/init.lua
 
+      # Integration specs launch the real game; macOS runners can create a
+      # window, Linux runners cannot without a display server.
+      - name: Integration tests
+        if: runner.os == 'macOS'
+        env:
+          TECS_CACHE_DIR: ${{ runner.temp }}/tecs-cache
+        run: '"$TECS" integ'
+
   windows:
     name: windows-latest
     runs-on: windows-latest

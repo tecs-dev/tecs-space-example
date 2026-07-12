@@ -8,6 +8,9 @@ This repo is a larger reference game for building with Tecs and Tecs2D in Teal. 
 - `tecs run`: build and launch the game. First run downloads Love2D 12 and prepares the embedded Tecs/Tecs2D dependencies.
 - `tecs check`: type-check all Teal source files. Add `--json` for machine-readable diagnostics.
 - `tecs build`: compile Teal to `build/` and copy assets/vendor files.
+- `tecs integ`: compile `spec/**/*.tl` and run it with the bundled busted runner;
+  `spec/game_lovespec.tl` boots the built game under real LÖVE and drives it over MCP.
+  Not headless; macOS and Linux only.
 - `tecs add <rock>[@version]` / `tecs remove <rock>` / `tecs update`: vendor pure-Lua rocks
   (and their Teal type declarations) from luarocks.org into `src/vendor/`. The committed
   `tecs-rocks.lua` records them; check/build restore missing rocks from it.

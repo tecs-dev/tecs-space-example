@@ -75,6 +75,7 @@ my-game/
 | `tecs run`           | Build and run the game (runs setup automatically)    |
 | `tecs build`         | Compile without running                              |
 | `tecs check`         | Type-check all Teal source files (`--json` for tooling) |
+| `tecs integ`         | Run `spec/`; `game_lovespec.tl` drives the built game over MCP |
 | `tecs add <rock>`    | Vendor a pure-Lua rock and its Teal types from luarocks.org |
 | `tecs remove <rock>` | Remove a vendored rock                               |
 | `tecs update`        | Update vendored rocks to their newest versions       |
