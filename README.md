@@ -9,26 +9,27 @@ a high-performance ECS framework.
 
 Install these tools before using this template:
 
-1. **Lua** - Any recent Lua that can run `tecs`
+1. **LuaJIT** - The Lua 5.1 runtime used by Tecs and `tecs-cli`
 2. **LuaRocks** - Lua package manager ([installation](https://github.com/luarocks/luarocks/blob/main/docs/download.md))
+3. **tecs-cli** - Install from [tecs-dev/tecs-cli](https://github.com/tecs-dev/tecs-cli)
 
 ## Quick Start
 
 ```bash
 git clone https://github.com/tecs-dev/tecs-starter.git my-game
 cd my-game
-./tecs run
+tecs run
 ```
 
 That's it! The first run automatically installs the Teal development release,
-downloads Love2D 12 and type definitions, and installs both the `tecs` and
-`tecs2d` rocks from your local Tecs checkout. You should see a scrolling shooter demo.
+downloads Love2D 12 and type definitions, and installs the project dependency
+tree. A sibling Tecs checkout (or `TECS_DIR`) is used automatically for local
+development. You should see a scrolling shooter demo.
 
 ## Project Structure
 
 ```
 my-game/
-├── tecs                  # Cross-platform build orchestration
 ├── tlconfig.lua          # Teal configuration
 ├── src/
 │   ├── main.tl           # Game entry point
@@ -44,15 +45,13 @@ my-game/
 
 ## Build Targets
 
-Commands are shown with `./tecs` for Unix-like systems. On Windows, use `lua tecs <target>`.
-
 | Command             | Description                                          |
 |---------------------|------------------------------------------------------|
-| `./tecs run`       | Build and run the game (runs setup automatically)    |
-| `./tecs build`     | Compile without running                              |
-| `./tecs check`     | Type-check all Teal source files                     |
-| `./tecs clean`     | Remove build artifacts                               |
-| `./tecs love12`    | Re-download Love2D 12                                |
+| `tecs run`         | Build and run the game (runs setup automatically)    |
+| `tecs build`       | Compile without running                              |
+| `tecs check`       | Type-check all Teal source files                     |
+| `tecs clean`       | Remove build artifacts                               |
+| `tecs love12`      | Re-download Love2D 12                                |
 
 ## Hot Reload
 
@@ -60,13 +59,13 @@ The template enables Tecs2D's snapshot-preserving hot reload by default. Run the
 game normally:
 
 ```bash
-./tecs run
+tecs run
 ```
 
 Then, from another terminal, rebuild whenever you want to reload code/assets:
 
 ```bash
-./tecs build
+tecs build
 ```
 
 On a successful build, the task runner updates `build/.tecs-reload-stamp`. The
@@ -79,7 +78,7 @@ You can wire any external watcher to the same stamp convention. The important
 rule is to touch the stamp only after a successful rebuild:
 
 ```bash
-watchexec -w src -w assets './tecs build'
+watchexec -w src -w assets 'tecs build'
 ```
 
 ## Managing Dependencies

@@ -11,7 +11,7 @@ love.run = tecs2d.run({
         enabled = true,
         snapshotPath = ".tecs-hot-reload.snapshot",
         -- The game runs from build/, so this polls build/.tecs-reload-stamp.
-        -- External tooling or `./tecs build` should touch the stamp only
+        -- External tooling or `tecs build` should touch the stamp only
         -- after a successful rebuild.
         stampPath = ".tecs-reload-stamp",
         restoreOnStartup = true,

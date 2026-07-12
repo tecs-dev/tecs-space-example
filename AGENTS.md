@@ -4,22 +4,21 @@ This repo is a starter template for building Love2D games with Tecs and Tecs2D i
 
 ## Quick Commands
 
-- `./tecs help`: show available targets.
-- `./tecs run`: build and launch the game. First run downloads Love2D 12 and installs local Tecs/Tecs2D dependencies.
-- `./tecs check`: type-check all Teal source files.
-- `./tecs build`: compile Teal to `build/` and copy assets/vendor files.
-- `./tecs clean`: remove build output.
-- `./tecs dev`: prepare local Tecs source for development iteration.
-- `./tecs sync-tecs`: reinstall Tecs/Tecs2D from the local checkout.
+- `tecs help`: show available targets.
+- `tecs run`: build and launch the game. First run downloads Love2D 12 and installs local Tecs/Tecs2D dependencies.
+- `tecs check`: type-check all Teal source files.
+- `tecs build`: compile Teal to `build/` and copy assets/vendor files.
+- `tecs clean`: remove build output.
+- `tecs dev`: prepare local Tecs source for development iteration.
+- `tecs sync-tecs`: reinstall Tecs/Tecs2D from the local checkout.
 
-Run `./tecs check` after source edits. Run `./tecs build` after adding/removing modules or assets. Use `./tecs run` when behavior or rendering needs manual verification.
-On Windows, use `lua tecs <target>`.
+Run `tecs check` after source edits. Run `tecs build` after adding/removing modules or assets. Use `tecs run` when behavior or rendering needs manual verification.
 
 ## Project Shape
 
 - `src/main.tl`: Love2D entry point using `tecs2d.run`.
 - `src/conf.tl`: Love2D window/app configuration.
-- `tecs`: cross-platform task runner for setup, check, build, run, and cleanup.
+- `tecs-cli`: installed command for setup, check, build, run, and cleanup.
 - `src/plugins/game.tl`: top-level game plugin, state setup, persistent HUD/starfield/player setup, shared systems.
 - `src/plugins/shared.tl`: game-specific components, constants, asset preload, and mutable game-state record.
 - `src/plugins/states/`: focused state plugins.
@@ -65,27 +64,27 @@ The player is intentionally treated as a persistent entity rather than a `gameSt
 
 This template ships with a full shooter demo. To turn it into a smaller blank project:
 
-1. Keep `src/main.tl`, `src/conf.tl`, `tecs`, `tlconfig.lua`, the project rockspec, and dependency setup.
+1. Keep `src/main.tl`, `src/conf.tl`, `tlconfig.lua`, the project rockspec, and dependency setup.
 2. Replace `src/plugins/game.tl` with a small plugin that registers only the Tecs/Tecs2D plugins you need, creates states if desired, and spawns a camera/HUD/test entity.
 3. Trim `src/plugins/shared.tl` down to only components/constants/assets your new game needs.
 4. Delete or ignore unused files under `src/plugins/states/`.
 5. Remove unused demo assets from `assets/`, but keep license files for any assets that remain.
-6. Run `./tecs check`, `./tecs build`, then `./tecs run`.
+6. Run `tecs check`, `tecs build`, then `tecs run`.
 
 For an even smaller starting point, keep `tecs2d.run({ game = require("plugins.game") })` in `src/main.tl` and have `plugins.game` return one plugin function that spawns a sprite/text/entity and one named update system.
 
 ## Editing Guidance
 
-- Source files are Teal (`.tl`), compiled to Lua by `./tecs build`.
+- Source files are Teal (`.tl`), compiled to Lua by `tecs build`.
 - Keep new comments short and useful; this starter should remain easy to scan.
 - Do not edit `build/` directly.
 - Do not remove third-party asset credit/license files unless the corresponding asset is removed too.
 - If you add new dependencies, install them under `src/vendor` with LuaRocks and update docs if needed.
-- If you add new files under `src/`, verify they are included by `./tecs build`.
+- If you add new files under `src/`, verify they are included by `tecs build`.
 
 ## CI
 
-GitHub Actions runs `lua tecs check` and `lua tecs build` on Linux, macOS, and Windows. The workflow checks out `tecs-dev/tecs` beside this starter and sets `TECS_DIR` so the template's local Tecs install path is exercised on every platform.
+GitHub Actions installs `tecs-cli` and runs `tecs check` and `tecs build` on Linux, macOS, and Windows. The workflow checks out `tecs-dev/tecs` beside this starter and sets `TECS_DIR` so the template's local Tecs install path is exercised on every platform.
 
 ## Useful References
 
