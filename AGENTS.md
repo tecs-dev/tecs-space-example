@@ -92,10 +92,10 @@ For an even smaller starting point, keep `tecs2d.run({ game = require("plugins.g
 
 ## CI
 
-GitHub Actions installs the latest published Tecs CLI — via Homebrew on macOS,
+GitHub Actions installs the latest published Tecs CLI via Homebrew on macOS,
 Scoop on Windows, and the standalone installer script on Linux, so every
-distribution channel stays covered — and runs `tecs check` and `tecs build` on
-all three platforms. No system Lua, LuaRocks, or compiler toolchain is
+distribution channel stays covered. It then runs `tecs check` and `tecs build`
+on all three platforms. No system Lua, LuaRocks, or compiler toolchain is
 installed by the workflow.
 
 ## Useful References
