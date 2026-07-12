@@ -5,11 +5,6 @@ on:
     branches: ["**"]
   pull_request:
 
-env:
-  # Keep this in sync with the Tecs repo CI. Newer tl snapshots currently
-  # reject a LuaJIT 5.1 loop idiom used by Tecs' rockspec build.
-  TL_REF: 4b97e8d4c743795cb148c898fb19e14b6f3b8f2d
-
 jobs:
   check-build:
     name: ${{ matrix.os }}
@@ -51,9 +46,7 @@ jobs:
         working-directory: tecs-starter
         run: |
           vendor_tree="$PWD/src/vendor"
-          git clone https://github.com/teal-language/tl.git /tmp/tl-dev
-          cd /tmp/tl-dev && git checkout "$TL_REF"
-          luarocks make --tree="$vendor_tree" --lua-version=5.1 tl-dev-1.rockspec
+          luarocks --dev install --tree="$vendor_tree" --lua-version=5.1 tl
 
       - name: Type-check
         working-directory: tecs-starter
@@ -136,18 +129,8 @@ jobs:
         run: |
           export PATH="$HOME/bin:$HOME/.luarocks/bin:$PATH"
           vendor_tree="$(pwd -W)/src/vendor"
-          git clone https://github.com/teal-language/tl.git /tmp/tl-dev
-          cd /tmp/tl-dev && git checkout "$TL_REF"
-          luarocks make --tree="$vendor_tree" --lua-version=5.1 tl-dev-1.rockspec
+          luarocks --dev install --tree="$vendor_tree" --lua-version=5.1 tl
           cd "$GITHUB_WORKSPACE/tecs-starter"
-          printf '%s\n' \
-            '#!/usr/bin/env bash' \
-            'root="$(cygpath -m "$PWD")"' \
-            'script="$root/src/vendor/lib/luarocks/rocks-5.1/tl/dev-1/bin/tl"' \
-            'export LUA_PATH="$root/src/vendor/share/lua/5.1/?.lua;$root/src/vendor/share/lua/5.1/?/init.lua;$LUA_PATH"' \
-            'export LUA_CPATH="$root/src/vendor/lib/lua/5.1/?.dll;$root/src/vendor/lib/lua/5.1/?.so;$LUA_CPATH"' \
-            'exec luajit "$script" "$@"' > src/vendor/bin/tl
-          chmod +x src/vendor/bin/tl
 
       - name: Type-check
         working-directory: tecs-starter

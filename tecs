@@ -304,9 +304,6 @@ end
 -- LUA_PATH entries letting `tl` resolve type defs and the vendored modules.
 local function lua_path()
     local paths = {
-        "types/?.d.tl",
-        "types/string/?.d.tl",
-        "types/table/?.d.tl",
         lua_module_path(tecs_dir) .. "/src/?.tl",
         lua_module_path(tecs_dir) .. "/src/?/init.tl",
         lua_module_path(tecs_dir) .. "/build/?.lua",
@@ -342,23 +339,16 @@ local function tecs_cmd(cmd)
     return posix_cmd("cd " .. q(normalize(tecs_dir)) .. " && PATH=" .. q(bin) .. ':$PATH ' .. cmd)
 end
 
-local function tecs_tl_ref()
-    local env_ref = os.getenv("TL_REF")
-    if env_ref and env_ref ~= "" then return env_ref end
-    local makefile = read_file(path_join(tecs_dir, "Makefile")) or ""
-    return makefile:match("\nTL_REF%s*%?=%s*([%w]+)") or makefile:match("^TL_REF%s*%?=%s*([%w]+)")
-end
-
 local function ensure_msys_teal_wrapper()
     if not is_msys then return false end
-    if not command_ok(posix_cmd('[ -f src/vendor/lib/luarocks/rocks-5.1/tl/dev-1/bin/tl ]')) then
+    if not command_ok(posix_cmd('[ -f src/vendor/lib/luarocks/rocks-5.1/tl/*/bin/tl ]')) then
         return false
     end
     local bin = path_join("src/vendor/bin")
     mkdir(bin)
     write_file(path_join(bin, "tl"), [[#!/usr/bin/env bash
 root="$(cygpath -m "$PWD")"
-script="$root/src/vendor/lib/luarocks/rocks-5.1/tl/dev-1/bin/tl"
+script="$(find "$root/src/vendor/lib/luarocks/rocks-5.1/tl" -path '*/bin/tl' | sort -r | head -n 1)"
 export LUA_PATH="$root/src/vendor/share/lua/5.1/?.lua;$root/src/vendor/share/lua/5.1/?/init.lua;$LUA_PATH"
 export LUA_CPATH="$root/src/vendor/lib/lua/5.1/?.dll;$root/src/vendor/lib/lua/5.1/?.so;$LUA_CPATH"
 exec luajit "$script" "$@"
@@ -368,7 +358,8 @@ exec luajit "$script" "$@"
 end
 
 local function ensure_teal_compiler()
-    if exists(path_join("src/vendor/bin/tl")) and not is_msys and command_ok(posix_cmd(q(path_join("src/vendor/bin/tl")) .. " --version >/dev/null 2>&1")) then
+    local tl_bin = path_join("src/vendor/bin/tl")
+    if (exists(tl_bin) or exists(tl_bin .. ".bat")) and not is_msys then
         return
     end
     if ensure_msys_teal_wrapper() then return end
@@ -377,20 +368,10 @@ local function ensure_teal_compiler()
     elseif command_ok(posix_cmd("tl --version >/dev/null 2>&1")) then
         return
     end
-    if os.getenv("GITHUB_ACTIONS") == "true" then
-        error("Teal compiler not found. CI should install it into src/vendor before running `tecs check`.", 0)
-    end
-    local ref = tecs_tl_ref()
-    if not ref then
-        error("Could not find TL_REF in " .. path_join(tecs_dir, "Makefile"), 0)
-    end
-    status("Installing Teal compiler...")
-    local tmp = path_join(".tecs-tmp", "tl")
-    remove(tmp)
-    run(posix_cmd("git clone --branch main " .. q("https://github.com/teal-language/tl.git") .. " " .. q(tmp)))
-    run(posix_cmd("cd " .. q(tmp) .. " && git checkout --detach " .. q(ref)))
-    run(posix_cmd("cd " .. q(tmp) .. " && luarocks make --tree=" .. q(path_join(cwd(), "src/vendor")) .. " --lua-version=5.1 tl-dev-1.rockspec"))
-    remove(path_join(".tecs-tmp"))
+    status("Installing Teal development release...")
+    run(posix_cmd("luarocks --dev install --tree=" .. q(path_join(cwd(), "src/vendor"))
+        .. " --lua-version=5.1 tl"))
+    ensure_msys_teal_wrapper()
 end
 
 -- Path to the downloaded Love2D executable for this platform.
@@ -401,25 +382,6 @@ local function love_bin()
         return path_join(love12_dir, "love.app/Contents/MacOS/love")
     end
     return path_join(love12_dir, "love")
-end
-
--- Copy Teal type definitions from the Tecs checkout on first use.
-local function ensure_types()
-    if exists("types/love2d.d.tl") then return end
-    local source = path_join(tecs_dir, "types")
-    if not exists(source) then
-        error(
-            "Type definitions not found. Expected " .. source .. "\n" ..
-            "Set TECS_DIR to a current Tecs checkout, run `git pull` there, or restore this starter's types/ directory.",
-            0
-        )
-    end
-    status("Copying type definitions...")
-    if is_windows then
-        copy_dir(source, "types", "/XD luassert /XF busted.d.tl")
-    else
-        copy_dir(source, "types", '--exclude="busted.d.tl" --exclude="luassert"')
-    end
 end
 
 -- Use the local checkout directly when LuaRocks cannot reliably install into
@@ -437,6 +399,14 @@ end
 -- Install Tecs/Tecs2D into src/vendor via luarocks on first use.
 local function ensure_vendor()
     ensure_teal_compiler()
+    if not exists(path_join(vendor_lua, "love2d.d.tl"))
+        or not exists(path_join(vendor_lua, "ffi.d.tl"))
+        or not exists(path_join(vendor_lua, "socket.d.tl")) then
+        status("Installing project dependencies...")
+        run(with_lua_path("luarocks --dev --lua-version=5.1 make --tree="
+            .. q(path_join(cwd(), "src/vendor")) .. " game-dev-1.rockspec"))
+        ensure_msys_teal_wrapper()
+    end
     if exists(path_join(vendor_lua, "tecs2d/init.tl")) then return end
     sync_local_tecs()
     if exists(path_join(vendor_lua, "tecs2d/init.tl")) then return end
@@ -613,7 +583,6 @@ will snapshot, restart, and restore state automatically.
 end
 
 function tasks.check()
-    ensure_types()
     ensure_vendor()
     status("Typechecking...")
     local sources = table.concat(list_teal_sources(), " ")
@@ -622,7 +591,6 @@ end
 
 function tasks.build()
     status("Building...")
-    ensure_types()
     ensure_vendor()
     compile_sources()
     copy_assets()
@@ -663,13 +631,13 @@ function tasks.dev()
     if not exists(tecs_build) or not exists(tecs2d_build) then
         error("Tecs build output not found. Build Tecs first: " .. tecs_dir, 0)
     end
+    ensure_vendor()
     mkdir(path_join(vendor_lua))
     remove(path_join(vendor_lua, "tecs"))
     remove(path_join(vendor_lua, "tecs2d"))
     status("Preparing local Tecs development source...")
     copy_dir(path_join(tecs_dir, "src/tecs"), path_join(vendor_lua, "tecs"))
     copy_dir(path_join(tecs_dir, "src/tecs2d"), path_join(vendor_lua, "tecs2d"))
-    ensure_types()
     status("Dev mode prepared. Re-run `lua tecs build` after changes.")
 end
 
@@ -680,7 +648,7 @@ tasks["sync-tecs"] = function()
         error("Tecs source not found under " .. path_join(tecs_dir, "src"), 0)
     end
     ensure_teal_compiler()
-    ensure_types()
+    ensure_vendor()
     sync_local_tecs()
     status("Sync complete.")
 end

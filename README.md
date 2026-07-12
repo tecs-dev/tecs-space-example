@@ -11,11 +11,6 @@ Install these tools before using this template:
 
 1. **Lua** - Any recent Lua that can run `tecs`
 2. **LuaRocks** - Lua package manager ([installation](https://github.com/luarocks/luarocks/blob/main/docs/download.md))
-3. **Teal** - Typed Lua compiler
-
-```bash
-luarocks install tl
-```
 
 ## Quick Start
 
@@ -25,8 +20,9 @@ cd my-game
 ./tecs run
 ```
 
-That's it! The first run automatically downloads Love2D 12, type definitions, and
-installs both the `tecs` and `tecs2d` rocks from your local Tecs checkout. You should see a scrolling shooter demo.
+That's it! The first run automatically installs the Teal development release,
+downloads Love2D 12 and type definitions, and installs both the `tecs` and
+`tecs2d` rocks from your local Tecs checkout. You should see a scrolling shooter demo.
 
 ## Project Structure
 
@@ -42,7 +38,6 @@ my-game/
 │       ├── shared.tl     # Components, constants, and asset preload
 │       └── states/       # Focused state/gameplay plugins
 ├── assets/               # Images, sounds, fonts
-├── types/                # Type definitions (generated)
 ├── build/                # Compiled output (generated)
 └── src/vendor/           # Installed rocks and dependencies (generated)
 ```

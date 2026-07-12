@@ -31,7 +31,7 @@ On Windows, use `lua tecs <target>`.
   - `dead.tl`: game-over input.
   - `overlay.tl`: shared title overlay helper.
 - `assets/`: bundled demo assets. Keep license files with assets.
-- `types/`: copied/generated Teal type definitions.
+- Teal declarations are installed into `src/vendor/` from LuaRocks type packages.
 - `src/vendor/`: installed LuaRocks tree.
 - `build/`: generated output. Do not hand-edit generated Lua.
 
@@ -65,7 +65,7 @@ The player is intentionally treated as a persistent entity rather than a `gameSt
 
 This template ships with a full shooter demo. To turn it into a smaller blank project:
 
-1. Keep `src/main.tl`, `src/conf.tl`, `tecs`, `tlconfig.lua`, `types/`, and dependency setup.
+1. Keep `src/main.tl`, `src/conf.tl`, `tecs`, `tlconfig.lua`, the project rockspec, and dependency setup.
 2. Replace `src/plugins/game.tl` with a small plugin that registers only the Tecs/Tecs2D plugins you need, creates states if desired, and spawns a camera/HUD/test entity.
 3. Trim `src/plugins/shared.tl` down to only components/constants/assets your new game needs.
 4. Delete or ignore unused files under `src/plugins/states/`.
