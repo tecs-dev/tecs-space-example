@@ -1,4 +1,4 @@
-# tecs-starter
+# tecs-space-example
 
 A larger reference game for [Tecs](https://github.com/tecs-dev/tecs), a
 high-performance ECS framework for building Love2D games in Teal.
@@ -41,7 +41,7 @@ irm https://github.com/tecs-dev/tecs-cli/releases/latest/download/install.ps1 | 
 ## Run This Reference Game
 
 ```bash
-git clone https://github.com/tecs-dev/tecs-starter.git my-game
+git clone https://github.com/tecs-dev/tecs-space-example.git my-game
 cd my-game
 tecs run
 ```

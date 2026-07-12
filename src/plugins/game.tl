@@ -262,7 +262,7 @@ local function gamePlugin(world: tecs.World)
     end
 
     world:observe(0, tecs.builtins.OnSnapshotSave, function(ev: tecs.builtins.OnSnapshotSave)
-        ev:addData("tecs-starter.gameState", {
+        ev:addData("tecs-space-example.gameState", {
             fireCooldown = gs.fireCooldown,
             bulletCount = gs.bulletCount,
             score = gs.score,
@@ -281,7 +281,7 @@ local function gamePlugin(world: tecs.World)
     end)
 
     world:observe(0, tecs.builtins.StartSnapshotLoad, function(ev: tecs.builtins.StartSnapshotLoad)
-        ev:onData("tecs-starter.gameState", function(value: any)
+        ev:onData("tecs-space-example.gameState", function(value: any)
             local data = value as {string: any}
             gs.fireCooldown = (data.fireCooldown as number) or gs.fireCooldown
             gs.bulletCount = (data.bulletCount as number) or gs.bulletCount
@@ -405,11 +405,11 @@ local function gamePlugin(world: tecs.World)
     local frozenVel: {integer: {number}} = {}
 
     world:observe(0, tecs.builtins.OnSnapshotSave, function(ev: tecs.builtins.OnSnapshotSave)
-        ev:addData("tecs-starter.frozenVel", frozenVel)
+        ev:addData("tecs-space-example.frozenVel", frozenVel)
     end)
 
     world:observe(0, tecs.builtins.StartSnapshotLoad, function(ev: tecs.builtins.StartSnapshotLoad)
-        ev:onData("tecs-starter.frozenVel", function(value: any)
+        ev:onData("tecs-space-example.frozenVel", function(value: any)
             frozenVel = {}
             local saved = value as {any: {number}}
             for rawId, vel in pairs(saved) do

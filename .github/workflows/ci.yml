@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
 
     steps:
-      - name: Check out starter
+      - name: Check out the space example
         uses: actions/checkout@v4
 
       # Each platform installs through a different published channel so CI
@@ -50,7 +50,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Check out starter
+      - name: Check out the space example
         uses: actions/checkout@v4
 
       - name: Install published Tecs CLI (Scoop)
