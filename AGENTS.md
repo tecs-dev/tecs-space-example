@@ -11,9 +11,10 @@ This repo is a larger reference game for building with Tecs and Tecs2D in Teal. 
 - `tecs integ`: compile `spec/**/*.tl` and run it with the bundled busted runner;
   `spec/game_lovespec.tl` boots the built game under real LÖVE and drives it over MCP.
   Not headless; macOS and Linux only.
-- `tecs add <rock>[@version]` / `tecs remove <rock>` / `tecs update`: vendor pure-Lua rocks
-  (and their Teal type declarations) from luarocks.org into `src/vendor/`. The committed
-  `tecs-rocks.lua` records them; check/build restore missing rocks from it.
+- Dependencies: vendor pure-Lua rocks with LuaRocks
+  (`luarocks install --tree src/vendor --lua-version=5.1 <rock>`, plus the matching
+  `<rock>-tl-type` rock for Teal declarations). `src/vendor/` is gitignored; record
+  installed rocks somewhere repeatable.
 - `tecs info --json`: CLI/runtime versions and project status for tooling.
 - `tecs clean`: remove build output.
 - `tecs dev`: prepare local Tecs source for development iteration.
@@ -86,8 +87,8 @@ For an even smaller starting point, keep `tecs2d.run({ game = require("plugins.g
 - Keep new comments short and useful; this reference project should remain easy to scan.
 - Do not edit `build/` directly.
 - Do not remove third-party asset credit/license files unless the corresponding asset is removed too.
-- Vendor third-party pure-Lua rocks with `tecs add <rock>` (never a LuaRocks installation);
-  commit the generated `tecs-rocks.lua`. Keep project-owned Teal modules under `src/`.
+- Vendor third-party pure-Lua rocks with LuaRocks into `src/vendor/` and record them
+  somewhere repeatable. Keep project-owned Teal modules under `src/`.
 - If you add new files under `src/`, verify they are included by `tecs build`.
 
 ## CI

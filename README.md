@@ -85,9 +85,6 @@ demonstrate the opt-in.
 | `tecs build`         | Compile without running                              |
 | `tecs check`         | Type-check all Teal source files (`--json` for tooling) |
 | `tecs integ`         | Run `spec/`; `game_lovespec.tl` drives the built game over MCP |
-| `tecs add <rock>`    | Vendor a pure-Lua rock and its Teal types from luarocks.org |
-| `tecs remove <rock>` | Remove a vendored rock                               |
-| `tecs update`        | Update vendored rocks to their newest versions       |
 | `tecs clean`         | Remove build artifacts                               |
 | `tecs info`          | Show CLI/runtime versions and project status (`--json` for tooling) |
 | `tecs agent`         | List bundled agent guides or print one's installed path |
