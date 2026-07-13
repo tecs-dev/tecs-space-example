@@ -68,6 +68,15 @@ my-game/
 └── src/vendor/           # Embedded framework sources and declarations (generated)
 ```
 
+## Releases
+
+Every `v*` tag is packaged automatically: the Release workflow runs
+`tecs integ`, then `tecs dist`, and attaches the `.love` file, the macOS app
+bundle, and the Windows build to the
+[GitHub release](https://github.com/tecs-dev/tecs-space-example/releases).
+This example keeps the MCP server and debugger enabled in those builds to
+demonstrate the opt-in.
+
 ## Build Targets
 
 | Command              | Description                                          |

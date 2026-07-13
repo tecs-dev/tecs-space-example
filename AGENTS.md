@@ -98,6 +98,11 @@ distribution channel stays covered. It then runs `tecs check` and `tecs build`
 on all three platforms. No system Lua, LuaRocks, or compiler toolchain is
 installed by the workflow.
 
+Tags matching `v*` run the Release workflow: it installs the published CLI on a
+macOS runner, runs `tecs integ`, packages the game with `tecs dist`, and
+attaches the `.love`, macOS bundle zip, and Windows build zip to the GitHub
+release.
+
 ## Useful References
 
 - Public docs: https://tecs.dev

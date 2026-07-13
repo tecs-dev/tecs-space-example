@@ -1,0 +1,49 @@
+# Packages the game with `tecs dist` and attaches the artifacts to the
+# GitHub release for the tag: the .love file, the macOS app bundle zip, and
+# the fused Windows build. Runs on macOS so one job can produce every target
+# (Windows packages cross-build; the app bundle needs a POSIX host).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to package and upload
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: macos-latest
+    env:
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+      TECS_CACHE_DIR: ${{ runner.temp }}/tecs-cache
+    steps:
+      - name: Check out the tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.RELEASE_TAG }}
+
+      - name: Install the Tecs CLI (Homebrew)
+        run: brew install tecs-dev/tap/tecs-cli
+
+      - name: Run integration specs
+        run: tecs integ
+
+      - name: Package
+        run: tecs dist
+
+      - name: Attach artifacts to the release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          fail_on_unmatched_files: true
+          files: |
+            dist/tecs-space-example.love
+            dist/tecs-space-example-macos.zip
+            dist/tecs-space-example-windows.zip
